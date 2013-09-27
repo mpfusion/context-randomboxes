@@ -1,0 +1,7 @@
+*.tmp
+*.tuc
+*.aux
+*.blg
+*.bbl
+*.log
+*.pdf

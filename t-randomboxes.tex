@@ -1,0 +1,122 @@
+%D \module
+%D   [     file=t-randomboxes,
+%D      version=2013.09.28,
+%D        title=\CONTEXT\ User Module,
+%D     subtitle=\METAPOST\ Random Boxes,
+%D       author=Marco Patzer,
+%D         date=\currentdate,
+%D    copyright=Marco Patzer,
+%D      license=GNU General Public License]
+
+%C Copyright (C) 2013  Marco Patzer
+%C
+%C This program is free software: you can redistribute it and/or modify
+%C it under the terms of the GNU General Public License as published by
+%C the Free Software Foundation, either version 3 of the License, or
+%C any later version.
+
+%D This module is based on John Hobby's boxes \METAPOST\ module. Three
+%D extra \METAPOST\ macros are defined, \type{drawrandomboxed},
+%D \type{drawrandomarrow} and \type{drawdblrandomarrow}. The macros draw the
+%D lines multiple times to simulate hand||drawn lines.
+%D
+%D It uses the global \METAPOST\ instance. It is not customizable and contains
+%D several hard||coded values.
+
+%M \page
+
+\writestatus{loading}{ConTeXt User Module / Random Boxes (ver: 2013.09.28)}
+
+\startmodule [randomboxes]
+
+\unprotect
+
+\startMPinclusions [+]
+	input boxes;
+\stopMPinclusions
+
+\startMPextensions
+
+	ahlength := 10bp;
+
+	def drawrandomboxed(text t) =
+		fixsize(t); fixpos(t);
+		forsuffixes s=t:
+			draw pic_mac_.s; %% draw content
+			for i=0 upto 4:
+				draw           %% draw random boxes
+					tensecircle(
+						xpart lrcorner bpath.s - xpart llcorner bpath.s,
+						ypart urcorner bpath.s - ypart llcorner bpath.s,
+						.1cm
+					)
+					shifted (xpart center bpath.s, ypart center bpath.s)
+					randomized .1cm;
+			endfor
+		endfor
+	enddef;
+
+	def drawrandomarrow    expr p = _apth:=p; _rndfinarr  enddef;
+	def drawdblrandomarrow expr p = _apth:=p; _rndfindarr enddef;
+
+	def _rndfinarr text t =
+		_apth := _apth cutbefore point  .5ahlength on _apth;
+		_apth := _apth cutafter  point -.5ahlength on _apth;
+		for i=0 upto 4:
+			draw _apth randomized .1cm;
+			draw shortarrowhead _apth randomized .1cm;
+		endfor
+	enddef;
+
+	def _rndfindarr text t =
+		_apth := _apth cutbefore point  .5ahlength on _apth;
+		_apth := _apth cutafter  point -.5ahlength on _apth;
+		for i=0 upto 4:
+			draw _apth randomized .1cm;
+			draw shortarrowhead          _apth randomized .1cm withpen currentpen;
+			draw shortarrowhead  reverse _apth randomized .1cm withpen currentpen;
+		endfor
+	enddef;
+
+	vardef shortarrowhead expr p =
+		save q,e; path q; pair e;
+		e = point length p of p;
+		q = gobble(p shifted -e cutafter makepath(pencircle scaled 2ahlength))
+			cuttings;
+		(q rotated .5ahangle & reverse q rotated -.5ahangle) shifted e
+	enddef;
+
+\stopMPextensions
+
+\protect
+
+\stopmodule
+
+%S B
+\continueifinputfile{t-randomboxes.tex}
+
+\starttext
+
+\startMPcode
+	interim defaultdy:=7bp;
+	interim defaultdx:=7bp;
+	
+	bdx := -2cm;
+	bdy := -1cm;
+	
+	boxit a(textext("Somebox A"));
+	boxit b(textext("Somebox B"));
+	boxit c(textext("Somebox C"));
+	
+	a.c = (0, 0);
+	c.ne = a.sw shifted (bdx, bdy);
+	b.nw = a.se shifted (-bdx, bdy);
+	
+	drawrandomboxed(a, b, c);
+	
+	drawdblrandomarrow a.e{right} .. {down}b.n;
+	drawdblrandomarrow a.w{left}  .. {down}c.n;
+	drawrandomarrow    b.w -- c.e;
+\stopMPcode
+
+\stoptext
